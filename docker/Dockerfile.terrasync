@@ -1,0 +1,14 @@
+FROM alpine AS flightgear
+RUN apk update && apk add git
+RUN git clone  --depth 1 -b release/2020.3 --single-branch git://git.code.sf.net/p/flightgear/flightgear
+
+FROM python:3-alpine
+WORKDIR /app
+COPY --from=flightgear /flightgear/scripts/python/TerraSync .
+
+USER nobody
+
+WORKDIR /scenery
+VOLUME /scenery
+
+ENTRYPOINT ["/usr/local/bin/python","/app/terrasync.py"]

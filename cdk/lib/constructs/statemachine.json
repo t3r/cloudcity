@@ -1,0 +1,187 @@
+{
+  "Comment": "A description of my state machine",
+  "StartAt": "Get 'rebuild' items",
+  "States": {
+    "Get 'rebuild' items": {
+      "Type": "Task",
+      "Parameters": {
+        "TableName": "${TableName}",
+        "IndexName": "gsi_status",
+        "Limit": 100,
+        "KeyConditionExpression": "#status = :status",
+        "ExpressionAttributeNames": {
+          "#status": "status"
+        },
+        "ExpressionAttributeValues": {
+          ":status": {
+            "S": "rebuild"
+          }
+        }
+      },
+      "Resource": "arn:aws:states:::aws-sdk:dynamodb:query",
+      "Next": "Map"
+    },
+    "Map": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "Set status 'processing'",
+        "States": {
+          "Set status 'processing'": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:updateItem",
+            "Parameters": {
+              "TableName": "${TableName}",
+              "Key": {
+                "tile": {
+                  "N.$": "$.tile.N"
+                },
+                "timestamp": {
+                  "N.$": "$.timestamp.N"
+                }
+              },
+              "UpdateExpression": "SET #status = :status, #one_one = :one_one, #ten_ten = :ten_ten",
+              "ExpressionAttributeNames": {
+                "#status": "status",
+                "#one_one": "one_one",
+                "#ten_ten": "ten_ten"
+              },
+              "ExpressionAttributeValues": {
+                ":status": "processing",
+                ":one_one.$": "$.one_one.S",
+                ":ten_ten.$": "$.ten_ten.S"
+              }
+            },
+            "Next": "Batch SubmitJob",
+            "ResultPath": null,
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Set status 'error'"
+              }
+            ]
+          },
+          "Batch SubmitJob": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::batch:submitJob.sync",
+            "Parameters": {
+              "JobQueue": "${JobQueueARN}",
+              "JobName.$": "States.Format('build-tile-{}', $.tile.N)",
+              "JobDefinition": "${BuildJobDefinitionARN}",
+              "Parameters": {
+                "tile.$": "$.tile.N"
+              }
+            },
+            "Next": "Set status 'done'",
+            "ResultPath": null,
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Set status 'error'",
+                "ResultPath": null
+              }
+            ]
+          },
+          "Set status 'done'": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:updateItem",
+            "Parameters": {
+              "TableName": "${TableName}",
+              "Key": {
+                "tile": {
+                  "N.$": "$.tile.N"
+                },
+                "timestamp": {
+                  "N.$": "$.timestamp.N"
+                }
+              },
+              "UpdateExpression": "SET #status = :status, #one_one = :one_one, #ten_ten = :ten_ten",
+              "ExpressionAttributeNames": {
+                "#status": "status",
+                "#one_one": "one_one",
+                "#ten_ten": "ten_ten"
+              },
+              "ExpressionAttributeValues": {
+                ":status": "done",
+                ":one_one.$": "$.one_one.S",
+                ":ten_ten.$": "$.ten_ten.S"
+              }
+            },
+            "ResultPath": null,
+            "End": true
+          },
+          "Set status 'error'": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::dynamodb:updateItem",
+            "Parameters": {
+              "TableName": "${TableName}",
+              "Key": {
+                "tile": {
+                  "N.$": "$.tile.N"
+                },
+                "timestamp": {
+                  "N.$": "$.timestamp.N"
+                }
+              },
+              "UpdateExpression": "SET #status = :status, #one_one = :one_one, #ten_ten = :ten_ten",
+              "ExpressionAttributeNames": {
+                "#status": "status",
+                "#one_one": "one_one",
+                "#ten_ten": "ten_ten"
+              },
+              "ExpressionAttributeValues": {
+                ":status": "error",
+                ":one_one.$": "$.one_one.S",
+                ":ten_ten.$": "$.ten_ten.S"
+              }
+            },
+            "ResultPath": null,
+            "Next": "SNS Publish Error"
+          },
+          "SNS Publish Error": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+              "TopicArn": "${SNSErrorTopicARN}",
+              "Message": {
+                "Message": "Job to build tile failed",
+                "tile.$": "$"
+              }
+            },
+            "End": true
+          }
+        }
+      },
+      "InputPath": "$.Items",
+      "Next": "Pack Files",
+      "MaxConcurrency": 1000
+    },
+    "Pack Files": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::batch:submitJob.sync",
+      "Parameters": {
+        "JobName": "Pack-Files",
+        "JobDefinition": "${PackJobDefinitionARN}",
+        "JobQueue": "${JobQueueARN}"
+      },
+      "Next": "SyncToS3"
+    },
+    "SyncToS3": {
+      "Type": "Task",
+      "Parameters": {
+        "TaskArn": "${DataSyncTaskARN}"
+      },
+      "Resource": "arn:aws:states:::aws-sdk:datasync:startTaskExecution",
+      "Next": "Success"
+    },
+    "Success": {
+      "Type": "Succeed"
+    }
+  }
+}
