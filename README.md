@@ -33,8 +33,12 @@ Open the Step Functions/StateMachines AWS console.  There you can see the state 
 - GET https://XXXXXX.cloudfront.net/api/10x10/e000n00 - get the status of all tiles within a 10x10 degree area
 - https://XXXXXX.cloudfront.net/ws2.0/o2c-packed/ - generated scenery in terrasync compatible format (.dirindex and .txz files)
 
-## StateMachine
+## Screenshots
 ![Screenshot of the statemachine](docs/img/statemachine.jpg "The statemachine")
+
+![Screenshot of jobs during development](docs/img/jobqueue.jpg "The job list during development")
+
+![Screenshot of the terrasync s3 bucket](docs/img/s3.jpg "The s3 bucket containing the generated data for terrasync")
 
 
 
