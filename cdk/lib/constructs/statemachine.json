@@ -19,7 +19,18 @@
         }
       },
       "Resource": "arn:aws:states:::aws-sdk:dynamodb:query",
-      "Next": "Map"
+      "Next": "CheckIfEmpty"
+    },
+    "CheckIfEmpty": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.Items[0]",
+          "IsPresent": true,
+          "Next": "Map"
+        }
+      ],
+      "Default": "Success"
     },
     "Map": {
       "Type": "Map",
