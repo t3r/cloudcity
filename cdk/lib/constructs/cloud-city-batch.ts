@@ -72,9 +72,9 @@ export class CloudCityBatch extends Construct {
           vpc: props.vpc,
           vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
           enabled: true,
-          maxvCpus: 32,
+          maxvCpus: 256,
           replaceComputeEnvironment: true,
-          spot: false,
+          spot: true,
         }),
         order: 0,
       }],
@@ -185,7 +185,11 @@ export class CloudCityBatch extends Construct {
         timeout: cdk.Duration.hours(4),
         parameters : {
           tile: '0'
-        }
+        },
+        retryAttempts: 3,
+        retryStrategies: [
+          batch.RetryStrategy.onExitCode(143),  // Retry on sigterm
+        ],
       },
 
       // Ec2Packer: {
