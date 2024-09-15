@@ -13,7 +13,7 @@ do_header() {
 cat << EOF
 #FlightGear scenery directory index created on $(date), Build-ID ${2:-none}
 #scenery data based on openstreetmap data
-#see https://gitlab.com/t3r/cloudcity for details, license and copyright
+#see https://github.com/t3r/cloudcity for details, license and copyright
 version:1
 path:${1:-}
 EOF
