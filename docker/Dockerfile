@@ -16,7 +16,7 @@ RUN git config --global user.email "osm2city-patcher@flightgear.org" && \
     rm -rf osm2city-data/.git && \
     chown 1000:1000 /app -R
 
-FROM torstend/fgelev:latest
+FROM torstend/fgelev:latest-arm64
 USER root
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && \
   apt-get update && apt-get install -y --no-install-recommends \
