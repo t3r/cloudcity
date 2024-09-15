@@ -35,33 +35,12 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
-          # --context image-tag=${{ github.sha }}-arm64
       - name: Deploy infra for builder
         run: >-
           npx cdk deploy
           --require-approval=never
-          --context image-tag=506c86f5d3294050d404559b6aefbf9c62fbdeab-arm64
+          --context image-tag=89fecdd06281bd7ee9512038ea0bfafa403ee1db-arm64
         working-directory: ./cdk
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
-        working-directory: ./docker
-        run: echo "skipped, using hardcoded version"
-        # run: |
-        #   docker build -t ${ECR_REGISTRY}/cloudcity:${IMAGE_TAG}-arm64 --platform linux/arm64 .
-        #   docker push ${ECR_REGISTRY}/cloudcity:${IMAGE_TAG}-arm64
 
 
