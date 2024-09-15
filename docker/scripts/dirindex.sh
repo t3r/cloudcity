@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -euxo pipefail
 
 pushd () {
     command pushd "$@" > /dev/null
@@ -34,8 +34,8 @@ do_the_dirindex() {
   # looks like we need to create a new .dirindex
   local DIRINDEX="$(do_header ${1:-})"
 
-  # start with subdirs fist
-  for dir in $(ls -d */ 2>/dev/null); do
+  # start with sorted subdirs fist
+  for dir in $(ls -1d */ 2>/dev/null); do
     test -z "$dir" && continue
     dir=$(basename $dir)
     pushd $dir
@@ -47,7 +47,7 @@ do_the_dirindex() {
     popd
   done
 
-  for f in $(find .  -maxdepth 1 -type f -name '*.txz'); do
+  for f in $(find .  -maxdepth 1 -type f -name '*.txz'|sort -f); do
     st_size="$(stat -c %s $f)"
     printf -v DIRINDEX '%s\nt:%s:%s:%d' "$DIRINDEX" "$(basename $f)" "$(do_sha1sum $f)" "$st_size"
   done
