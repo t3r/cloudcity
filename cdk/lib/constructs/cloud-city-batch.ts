@@ -188,7 +188,9 @@ export class CloudCityBatch extends Construct {
         },
         retryAttempts: 3,
         retryStrategies: [
-          batch.RetryStrategy.onExitCode(143),  // Retry on sigterm
+          batch.RetryStrategy.of( batch.Action.RETRY, batch.Reason.custom({
+            onExitCode: '143',  // Retry on sigterm
+          })),
         ],
       },
 
