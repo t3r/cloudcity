@@ -74,7 +74,7 @@ export class CloudCityBatch extends Construct {
           enabled: true,
           maxvCpus: 256,
           replaceComputeEnvironment: true,
-          spot: true,
+          spot: false,
         }),
         order: 0,
       }],
