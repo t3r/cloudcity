@@ -101,7 +101,16 @@ export class CloudCityDistribution extends Construct {
             originAccessControl: oac
           }),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: new cloudfront.CachePolicy(this, 'ws20cache', {
 
+            minTtl: cdk.Duration.minutes(10), //FIXME: pick a usable value for prod
+            defaultTtl: cdk.Duration.minutes(30), //FIXME: pick a usable value for prod
+            maxTtl: cdk.Duration.minutes(60), //FIXME: pick a usable value for prod
+
+            comment: 'A bit of caching for the ws2.0 osm files',
+            enableAcceptEncodingBrotli: false,
+            enableAcceptEncodingGzip: false,
+          }),
         }
       },
       defaultRootObject: 'index.html',
