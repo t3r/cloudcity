@@ -51,8 +51,8 @@ jobs:
           context: docker
           platforms: linux/arm64
           push: true
-          build-args:
-            - PLATFORM: arm64
+          args: |
+            PLATFORM=arm64
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/cloudcity:${{ github.sha }}-arm64
 
@@ -62,8 +62,8 @@ jobs:
           context: docker
           platforms: linux/amd64
           push: true
-          build-args:
-            - PLATFORM: amd64
+          args: |
+            PLATFORM=amd64
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/cloudcity:${{ github.sha }}-amd64
 
