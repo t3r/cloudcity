@@ -97,7 +97,8 @@ export class CloudCityBatch extends Construct {
 
     const ContainerDefs = {
       osm2cityBuilder: {
-        fargateCpuArchitecture: ecs.CpuArchitecture.ARM64,
+        // fargateCpuArchitecture: ecs.CpuArchitecture.ARM64,
+        fargateCpuArchitecture: ecs.CpuArchitecture.X86_64,
         fargateOperatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
         cpu: 1, // vCPU
         memory: cdk.Size.gibibytes(6), // works for Berlin
@@ -122,7 +123,8 @@ export class CloudCityBatch extends Construct {
       },
 
       osm2cityPacker: {
-        fargateCpuArchitecture: ecs.CpuArchitecture.ARM64,
+        // fargateCpuArchitecture: ecs.CpuArchitecture.ARM64,
+        fargateCpuArchitecture: ecs.CpuArchitecture.X86_64,
         fargateOperatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
         cpu:  4, // vCPU
         memory: cdk.Size.gibibytes(8),
