@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -euxo pipefail
 
 if [ $# != 2 ]; then
   SOURCE="$OSM2CITY_PATH_TO_OUTPUT"
@@ -35,14 +35,17 @@ pushd $SOURCE  > /dev/null
         if [ ! -d $oneone ]; then
           continue
         fi
-        if [ ! -f "$TXZ" ] || [ ! -z "$(find $oneone -type f -newer $TXZ)" ]; then
+#        if [ ! -f "$TXZ" ] || [ ! -z "$(find $oneone -type f -newer $TXZ)" ]; then
           echo "$(pwd),$TXZ,$oneone"
-        fi
+#        fi
       done
       popd > /dev/null
     done
     popd > /dev/null
   done )| parallel -C ',' tar  --verbose --directory {1} --create --xz --file {2} {3}
+  echo "parallel should be ready, showing ps"
+  ps
+  echo "that's it"
 popd > /dev/null
 
 #Remove stale archives
