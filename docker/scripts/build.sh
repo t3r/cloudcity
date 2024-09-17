@@ -64,4 +64,4 @@ shift $(expr $OPTIND - 1) # remove options from positional parameters
 test -n "$DATABASE" && export PGDATABASE=$DATABASE
 O2C_PROCESSES=${O2C_PROCESSES:-1}
 /usr/bin/python3 /app/osm2city/build_tiles.py -f /app/params.ini -p ${O2C_PROCESSES} -b "*${WEST}_${SOUTH}_${EAST}_${NORTH}" && \
-echo "echo "build_tiles is done. Here is a list of the output folder: " && ls -lR "$OSM2CITY_PATH_TO_OUTPUT"
+echo "build_tiles is done. Here is a list of the output folder: " && ls -lR "$OSM2CITY_PATH_TO_OUTPUT"
