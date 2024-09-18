@@ -23,6 +23,7 @@ USER root
 RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true && \
   apt-get update && apt-get install -y --no-install-recommends \
   bc \
+  curl \
   jq \
   parallel \
   python3 python3-pip \

@@ -63,6 +63,7 @@ shift $(expr $OPTIND - 1) # remove options from positional parameters
 . $(dirname $0)/boundsparser.sh
 test -n "$DATABASE" && export PGDATABASE=$DATABASE
 O2C_PROCESSES=${O2C_PROCESSES:-1}
+$(dirname $0)/curl-test.sh
 /usr/bin/python3 /app/osm2city/build_tiles.py -f /app/params.ini -p ${O2C_PROCESSES} -b "*${WEST}_${SOUTH}_${EAST}_${NORTH}" && \
 echo "build_tiles is done. Here is a list of the output folder: " && ls -lR "$OSM2CITY_PATH_TO_OUTPUT"
 echo "cpuinfo:"
