@@ -3,6 +3,10 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as efs from 'aws-cdk-lib/aws-efs';
 import * as s3  from 'aws-cdk-lib/aws-s3';
 import * as iam  from 'aws-cdk-lib/aws-iam';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as path from 'path';
 
 import * as datasync from 'aws-cdk-lib/aws-datasync';
 import { Construct } from 'constructs';
@@ -128,6 +132,38 @@ export class DataSyncSourceLocation extends Construct {
       subdirectory: props.accessPointPath,
       fileSystemAccessRoleArn:dataSyncRole.roleArn,
     });
+  }
+}
+
+export interface DataSyncEventRuleProps {
+  dataSyncTaskARN: string,
+}
+
+export class DataSyncEventRule extends Construct {
+  constructor(scope: Construct, id: string, props: DataSyncEventRuleProps) {
+    super(scope, id);
+
+    // Create a Lambda function to handle the event
+    const handler = new lambda.Function(this, 'DataSyncSuccessHandler', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambdas', 'eventforwarder') ),
+    });
+
+    // Create the EventBridge rule
+    const rule = new events.Rule(this, 'DataSyncSuccessRule', {
+      eventPattern: {
+        source: ['aws.datasync'],
+        detailType: ['DataSync Task Execution State Change'],
+        detail: {
+          State: ['SUCCESS'],
+          TaskArn: [props.dataSyncTaskARN]
+        }
+      },
+    });
+
+    // Add the Lambda function as a target for the rule
+    rule.addTarget(new targets.LambdaFunction(handler));
   }
 }
 
