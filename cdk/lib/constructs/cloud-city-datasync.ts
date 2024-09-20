@@ -151,20 +151,23 @@ export class DataSyncEventRule extends Construct {
       code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambdas', 'eventforwarder') ),
     });
 
+    // hack to make allow an object in resources. EventPattern defines this as array of string
+    const eventPattern: unknown = {
+      source: ['aws.datasync'],
+      detailType: ['DataSync Task Execution State Change'],
+      resources: [
+        {
+          prefix: props.dataSyncTaskARN,
+        }
+      ],
+      detail: {
+        State: ['SUCCESS', 'ERROR'],
+      }
+    };
+
     // Create the EventBridge rule
     const rule = new events.Rule(this, 'DataSyncSuccessRule', {
-      eventPattern: {
-        source: ['aws.datasync'],
-        detailType: ['DataSync Task Execution State Change'],
-        resources: [
-          JSON.stringify({
-            prefix: props.dataSyncTaskARN +  '/*',
-          })
-        ],
-        detail: {
-          State: ['SUCCESS'],
-        }
-      },
+      eventPattern: eventPattern as events.EventPattern,
     });
 
     // Add the Lambda function as a target for the rule

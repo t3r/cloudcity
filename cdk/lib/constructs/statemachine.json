@@ -190,6 +190,7 @@
         "TaskToken.$": "$$.Task.Token"
       },
       "Resource": "arn:aws:states:::aws-sdk:datasync:startTaskExecution.waitForTaskToken",
+      "TimeoutSeconds": 300,
       "Next": "Success"
     },
     "Success": {
