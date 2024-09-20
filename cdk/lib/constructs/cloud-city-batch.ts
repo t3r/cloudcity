@@ -192,7 +192,7 @@ export class CloudCityBatch extends Construct {
       FgBuilder: {
         propagateTags: true,
         container: new batch.EcsFargateContainerDefinition(this, 'build-fg', ContainerDefs.osm2cityBuilder ),
-        timeout: cdk.Duration.hours(4),
+        timeout: cdk.Duration.hours(8),
         parameters : {
           tile: '0'
         },
