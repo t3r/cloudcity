@@ -10,8 +10,7 @@ import { CloudCityUi } from './constructs/cloud-city-ui';
 import {
   DataSyncSourceLocation,
   DataSyncDestinationLocation,
-  DataSyncTask,
-  DataSyncEventRule } from './constructs/cloud-city-datasync';
+  DataSyncTask } from './constructs/cloud-city-datasync';
 
 export interface CloudCityBuildStackProps extends cdk.StackProps {
 }
@@ -45,11 +44,6 @@ export class CloudCityBuildStack extends cdk.Stack {
       source: efsLocation,
       dest: s3Location,
     });
-
-    const dataSyncEventRule = new DataSyncEventRule(this, 'DataSyncEventRule', {
-      dataSyncTaskARN: dataSyncTask.ref,
-    });
-
 
     const { fargateQueue, jobDefinitions, topic } = new CloudCityBatch( this, id + 'Batch', {
       vpc,

@@ -3,10 +3,10 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as efs from 'aws-cdk-lib/aws-efs';
 import * as s3  from 'aws-cdk-lib/aws-s3';
 import * as iam  from 'aws-cdk-lib/aws-iam';
-import * as events from 'aws-cdk-lib/aws-events';
-import * as targets from 'aws-cdk-lib/aws-events-targets';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as path from 'path';
+// import * as events from 'aws-cdk-lib/aws-events';
+// import * as targets from 'aws-cdk-lib/aws-events-targets';
+// import * as lambda from 'aws-cdk-lib/aws-lambda';
+// import * as path from 'path';
 
 import * as datasync from 'aws-cdk-lib/aws-datasync';
 import { Construct } from 'constructs';
@@ -37,20 +37,12 @@ export class DataSyncDestinationLocation extends Construct {
     // Grant the necessary permissions to the role
     props.bucket.grantReadWrite(dataSyncS3Role);
 
-    // Add s3:ListBucket permission
-    // dataSyncS3Role.addToPolicy(new iam.PolicyStatement({
-    //   actions: ['s3:ListBucket'],
-    //   resources: [props.bucket.bucketArn],
-    // }));
-
-    // Get the existing bucket policy
-
      // Create new policy statements
      const listBucketStatement = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['s3:ListBucket', 's3:GetBucketLocation', 's3:ListBucketMultipartUploads'],
-      resources: [props.bucket.bucketArn],
-      principals: [new iam.ArnPrincipal(dataSyncS3Role.roleArn)],
+       effect: iam.Effect.ALLOW,
+       actions: ['s3:ListBucket', 's3:GetBucketLocation', 's3:ListBucketMultipartUploads'],
+       resources: [props.bucket.bucketArn],
+       principals: [new iam.ArnPrincipal(dataSyncS3Role.roleArn)],
     });
 
     const objectOperationsStatement = new iam.PolicyStatement({
@@ -135,45 +127,45 @@ export class DataSyncSourceLocation extends Construct {
   }
 }
 
-export interface DataSyncEventRuleProps {
-  dataSyncTaskARN: string,
-}
+// export interface DataSyncEventRuleProps {
+//   dataSyncTaskARN: string,
+// }
 
-export class DataSyncEventRule extends Construct {
-  constructor(scope: Construct, id: string, props: DataSyncEventRuleProps) {
-    super(scope, id);
+// export class DataSyncEventRule extends Construct {
+//   constructor(scope: Construct, id: string, props: DataSyncEventRuleProps) {
+//     super(scope, id);
 
-    // Create a Lambda function to handle the event
-    const handler = new lambda.Function(this, 'DataSyncSuccessHandler', {
-      description: 'Handler for the EventBridge to handle DataSync success events',
-      runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambdas', 'eventforwarder') ),
-    });
+//     // Create a Lambda function to handle the event
+//     const handler = new lambda.Function(this, 'DataSyncSuccessHandler', {
+//       description: 'Handler for the EventBridge to handle DataSync success events',
+//       runtime: lambda.Runtime.NODEJS_20_X,
+//       handler: 'index.handler',
+//       code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambdas', 'eventforwarder') ),
+//     });
 
-    // hack to make allow an object in resources. EventPattern defines this as array of string
-    const eventPattern: unknown = {
-      source: ['aws.datasync'],
-      detailType: ['DataSync Task Execution State Change'],
-      resources: [
-        {
-          prefix: props.dataSyncTaskARN,
-        }
-      ],
-      detail: {
-        State: ['SUCCESS', 'ERROR'],
-      }
-    };
+//     // hack to make allow an object in resources. EventPattern defines this as array of string
+//     const eventPattern: unknown = {
+//       source: ['aws.datasync'],
+//       detailType: ['DataSync Task Execution State Change'],
+//       resources: [
+//         {
+//           prefix: props.dataSyncTaskARN,
+//         }
+//       ],
+//       detail: {
+//         State: ['SUCCESS', 'ERROR'],
+//       }
+//     };
 
-    // Create the EventBridge rule
-    const rule = new events.Rule(this, 'DataSyncSuccessRule', {
-      eventPattern: eventPattern as events.EventPattern,
-    });
+//     // Create the EventBridge rule
+//     const rule = new events.Rule(this, 'DataSyncSuccessRule', {
+//       eventPattern: eventPattern as events.EventPattern,
+//     });
 
-    // Add the Lambda function as a target for the rule
-    rule.addTarget(new targets.LambdaFunction(handler));
-  }
-}
+//     // Add the Lambda function as a target for the rule
+//     rule.addTarget(new targets.LambdaFunction(handler));
+//   }
+// }
 
 export interface DataSyncTaskProps {
   source: datasync.CfnLocationEFS,
