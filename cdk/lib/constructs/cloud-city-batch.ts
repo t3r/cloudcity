@@ -66,11 +66,19 @@ export class CloudCityBatch extends Construct {
       ]
     }));
 
+    const fargateQSG = new ec2.SecurityGroup(this,'FargateQSQ', {
+      vpc: props.vpc,
+      description: 'Security group for Fargate Queue, enble alloutboud traffic fir ip4 and ip6',
+      allowAllOutbound: true,
+      allowAllIpv6Outbound: true
+    })
+
     this.fargateQueue = new batch.JobQueue( this, 'FargateQ', {
       computeEnvironments: [{
         computeEnvironment: new batch.FargateComputeEnvironment(this, 'FargateEnv', {
           vpc: props.vpc,
           vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
+          securityGroups:  [fargateQSG], 
           enabled: true,
           maxvCpus: 256,
           replaceComputeEnvironment: true,

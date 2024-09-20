@@ -145,6 +145,7 @@ export class DataSyncEventRule extends Construct {
 
     // Create a Lambda function to handle the event
     const handler = new lambda.Function(this, 'DataSyncSuccessHandler', {
+      description: 'Handler for the EventBridge to handle DataSync success events',
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambdas', 'eventforwarder') ),
@@ -155,9 +156,13 @@ export class DataSyncEventRule extends Construct {
       eventPattern: {
         source: ['aws.datasync'],
         detailType: ['DataSync Task Execution State Change'],
+        resources: [
+          JSON.stringify({
+            prefix: props.dataSyncTaskARN +  '/*',
+          })
+        ],
         detail: {
           State: ['SUCCESS'],
-          TaskArn: [props.dataSyncTaskARN]
         }
       },
     });

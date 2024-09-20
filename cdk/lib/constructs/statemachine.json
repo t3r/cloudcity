@@ -186,9 +186,10 @@
     "SyncToS3": {
       "Type": "Task",
       "Parameters": {
-        "TaskArn": "${DataSyncTaskARN}"
+        "TaskArn": "${DataSyncTaskARN}",
+        "TaskToken.$": "$$.Task.Token"
       },
-      "Resource": "arn:aws:states:::aws-sdk:datasync:startTaskExecution",
+      "Resource": "arn:aws:states:::aws-sdk:datasync:startTaskExecution.waitForTaskToken",
       "Next": "Success"
     },
     "Success": {
