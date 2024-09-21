@@ -66,9 +66,9 @@ export class CloudCityBatch extends Construct {
       ]
     }));
 
-    const fargateQSG = new ec2.SecurityGroup(this,'FargateQSQ', {
+    const fargateQSG = new ec2.SecurityGroup(this,'FargateQSG', {
       vpc: props.vpc,
-      description: 'Security group for Fargate Queue, enble alloutboud traffic fir ip4 and ip6',
+      description: 'Security group for Fargate Queue, enble alloutboud traffic over ip4 and ip6',
       allowAllOutbound: true,
       allowAllIpv6Outbound: true
     })
@@ -82,7 +82,7 @@ export class CloudCityBatch extends Construct {
           enabled: true,
           maxvCpus: 256,
           replaceComputeEnvironment: true,
-          spot: false,
+          spot: true,
         }),
         order: 0,
       }],

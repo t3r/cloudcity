@@ -168,7 +168,7 @@ export class CloudCityApi extends Construct {
       description: 'REST API Implementation for the CloudCity',
       code: lambda.Code.fromAsset(path.join(__dirname, '..', 'lambdas', 'api' )),
       handler: 'index.handler',
-      timeout: cdk.Duration.seconds(5),
+      timeout: cdk.Duration.seconds(15),
       environment: {
         TABLE_NAME: props.tilesTable.tableName,
       },
