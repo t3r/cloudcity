@@ -24,9 +24,6 @@ if [ ! -d $SOURCE ]; then
   exit 1
 fi
 
-echo "This is in $TARGET now"
-ls -lR $TARGET
-
 pushd $SOURCE  > /dev/null
   ( for d in $(ls -d Buildings Details Pylons Roads Trees 2>/dev/null); do
     pushd $d  > /dev/null
@@ -46,10 +43,6 @@ pushd $SOURCE  > /dev/null
     done
     popd > /dev/null
   done )| parallel -C ',' tar  --verbose --directory {1} --create --xz --file {2} {3}
-  echo "parallel should be ready, showing ps and $TARGET content"
-  ps
-  ls -lR $TARGET
-  echo "that's it"
 popd > /dev/null
 
 #Remove stale archives
@@ -66,7 +59,4 @@ popd
 
 echo "Doing the dirindex on $TARGET"
 $(dirname $0)/dirindex.sh "$TARGET"
-
-echo "Done - here is the result"
-ls -lR $TARGET
 echo "Goodbye."
