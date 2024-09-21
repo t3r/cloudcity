@@ -5,7 +5,7 @@ services:
       - 8080:80
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../aws-ts/lib/www:/usr/share/nginx/html
+      - ../cdk/lib/www:/usr/share/nginx/html
       - ../workspace:/workspace
 
   terrasync:
