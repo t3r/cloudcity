@@ -63,5 +63,5 @@ shift $(expr $OPTIND - 1) # remove options from positional parameters
 . $(dirname $0)/boundsparser.sh
 test -n "$DATABASE" && export PGDATABASE=$DATABASE
 O2C_PROCESSES=${O2C_PROCESSES:-1}
-/usr/bin/python3 /app/osm2city/build_tiles.py -f /app/params.ini -p ${O2C_PROCESSES} -b "*${WEST}_${SOUTH}_${EAST}_${NORTH}" && \
+/usr/bin/python3 /app/osm2city/build_tiles.py -f /app/params.ini -p ${O2C_PROCESSES} -b "*${WEST}_${SOUTH}_${EAST}_${NORTH}"
 
