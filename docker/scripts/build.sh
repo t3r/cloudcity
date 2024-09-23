@@ -2,10 +2,15 @@
 set -euxo pipefail
 
 function cleanup {
-	echo "cleanup"
+  echo "cleanup"
+}
+
+function term {
+  echo "SIGTERM received. The end is near."
 }
 
 trap cleanup EXIT
+trap term SIGTERM
 
 WEST=
 EAST=

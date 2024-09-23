@@ -1,6 +1,12 @@
 #!/bin/bash
 set -euxo pipefail
 
+function term {
+  echo "SIGTERM received. The end is near."
+}
+trap term SIGTERM
+
+
 if [ $# != 2 ]; then
   SOURCE="$OSM2CITY_PATH_TO_OUTPUT"
   TARGET="$OSM2CITY_PATH_TO_PACKED"
@@ -35,9 +41,9 @@ pushd $SOURCE  > /dev/null
         if [ ! -d $oneone ]; then
           continue
         fi
-#        if [ ! -f "$TXZ" ] || [ ! -z "$(find $oneone -type f -newer $TXZ)" ]; then
+        if [ ! -f "$TXZ" ] || [ ! -z "$(find $oneone -type f -newer $TXZ)" ]; then
           echo "$(pwd),$TXZ,$oneone"
-#        fi
+        fi
       done
       popd > /dev/null
     done
