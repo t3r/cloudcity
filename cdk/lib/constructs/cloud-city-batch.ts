@@ -57,12 +57,6 @@ export class CloudCityBatch extends Construct {
           resources: [ props.fileSystem.fileSystemArn ]
         }),
 
-        new iam.PolicyStatement({
-          actions: [ "kms:Decrypt", "secretsmanager:GetSecretValue" ],
-          effect: iam.Effect.ALLOW,
-          resources: [ "arn:aws:secretsmanager:eu-central-1:533267260386:secret:gitlab-docker-cIw1N7",
-                       "arn:aws:kms:eu-central-1:533267260386:aws/secretsmanager", ]
-        })
       ]
     }));
 
