@@ -63,6 +63,10 @@ pwd
   done
 popd
 
+
+#create the sources.xml
+cmp -s "$(dirname $0)/sources.xml" "$TARGET/sources.xml" || cp "$(dirname $0)/sources.xml" "$TARGET/sources.xml"
+
 echo "Doing the dirindex on $TARGET"
 $(dirname $0)/dirindex.sh "$TARGET"
 echo "Goodbye."

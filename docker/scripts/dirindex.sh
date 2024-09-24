@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euxo pipefail
+set -euo pipefail
 
 pushd () {
     command pushd "$@" > /dev/null
@@ -47,10 +47,17 @@ do_the_dirindex() {
     popd
   done
 
-  for f in $(find .  -maxdepth 1 -type f -name '*.txz'|sort -f); do
+  for f in $(find .  -maxdepth 1 -type f -name '*.txz' |sort -f); do
     st_size="$(stat -c %s $f)"
     printf -v DIRINDEX '%s\nt:%s:%s:%d' "$DIRINDEX" "$(basename $f)" "$(do_sha1sum $f)" "$st_size"
   done
+
+  # special case: sources.xml is a regular file
+  f=sources.xml
+  if [ -f "$f" ]; then
+    st_size="$(stat -c %s $f)"
+    printf -v DIRINDEX '%s\nf:%s:%s:%d' "$DIRINDEX" "$(basename $f)" "$(do_sha1sum $f)" "$st_size"
+  fi
 
   echo "$DIRINDEX" > .dirindex
   do_sha1sum .dirindex

@@ -1,0 +1,12 @@
+<PropertyList>
+    <source>
+        <name>OpenStreetMap</name>
+        <link>https://www.openstreetmap.org/copyright</link>
+        <license>Open Data Commons Open Database-License (ODbL)</license>
+    </source>
+    <source>
+        <name>created by CloudCity</name>
+        <link>https://github.com/t3r/cloudcity</link>
+        <license>GPL2+, GNU General Public License, version 2 or any later</license>
+    </source>
+</PropertyList>

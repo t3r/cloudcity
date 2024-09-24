@@ -21,6 +21,7 @@ JSON=
 TEN=
 ONE=
 TILE=
+PINI=
 
 usage() { 
   echo "Usage: $0 --input something.osm.pbf [--database dbname] [--east -120  --west -130 --south 30 --north 40]" 1>&2; 
@@ -41,6 +42,7 @@ for arg in "$@"; do
     '--10x10')   set -- "$@" '-t'   ;;
     '--1x1')     set -- "$@" '-o'   ;;
     '--tile')    set -- "$@" '-l'   ;;
+    '--pini')    set -- "$@" '-p'   ;;
     '--help')   set -- "$@" '-h'   ;;
     *) set -- "$@" "$arg" ;;
   esac
@@ -48,7 +50,7 @@ done
 
 # Parse short options
 OPTIND=1
-while getopts "i:j:d:e:w:s:n:t:o:l:h" opt
+while getopts "i:j:d:e:w:s:n:t:o:l:p:h" opt
 do
   case "$opt" in
     'd') DATABASE=$OPTARG ;;
@@ -60,6 +62,7 @@ do
     't') TEN=$OPTARG ;;
     'o') ONE=$OPTARG ;;
     'l') TILE=$OPTARG ;;
+    'p') PINI=$OPTARG ;;
     'h') usage ;;
     '?') usage ;;
   esac
@@ -68,5 +71,15 @@ shift $(expr $OPTIND - 1) # remove options from positional parameters
 . $(dirname $0)/boundsparser.sh
 test -n "$DATABASE" && export PGDATABASE=$DATABASE
 O2C_PROCESSES=${O2C_PROCESSES:-1}
-/usr/bin/python3 /app/osm2city/build_tiles.py -f /app/params.ini -p ${O2C_PROCESSES} -b "*${WEST}_${SOUTH}_${EAST}_${NORTH}"
+
+# if provided, append base64 encoded params.ini content to the default params.ini
+cat /app/params.ini > /tmp/params.ini
+if [ ! -z "$PINI" ]; then
+  echo $PINI | base64 -d >> /tmp/params.ini
+fi
+
+echo "Using params.ini:"
+cat /tmp/params.ini
+
+/usr/bin/python3 /app/osm2city/build_tiles.py -f /tmp/params.ini -p ${O2C_PROCESSES} -b "*${WEST}_${SOUTH}_${EAST}_${NORTH}"
 
