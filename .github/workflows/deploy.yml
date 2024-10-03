@@ -59,6 +59,8 @@ jobs:
       - name: Build and push amd64
         uses: docker/build-push-action@v6
         with:
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           context: docker
           platforms: linux/amd64
           push: true
