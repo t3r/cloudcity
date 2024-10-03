@@ -1,17 +1,20 @@
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 
+export interface CloudCityVpcProps {
+  cidr: string;
+}
 export class CloudCityVpc extends Construct {
   public readonly vpc: ec2.Vpc;
 
-  constructor(scope: Construct, id: string ) {
+  constructor(scope: Construct, id: string, props: CloudCityVpcProps ) {
     super(scope, id);
 
     this.vpc = new ec2.Vpc(this, id + '-VPC', {
       ipProtocol: ec2.IpProtocol.DUAL_STACK,
       natGateways: 0,
       maxAzs: 2,
-      ipAddresses: ec2.IpAddresses.cidr('10.123.0.0/16'),
+      ipAddresses: ec2.IpAddresses.cidr(props.cidr),
       enableDnsHostnames: true,
       enableDnsSupport: true,
       subnetConfiguration: [

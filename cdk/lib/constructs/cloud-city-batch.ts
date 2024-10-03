@@ -40,7 +40,7 @@ export class CloudCityBatch extends Construct {
       repositoryName: 'cloudcity',
       imageTagMutability: ecr.TagMutability.MUTABLE, // keep mutable, commit-hash is unique
       imageScanOnPush: true,
-      removalPolicy: cdk.RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
       encryption: ecr.RepositoryEncryption.AES_256,
     })
 
@@ -72,7 +72,7 @@ export class CloudCityBatch extends Construct {
         computeEnvironment: new batch.FargateComputeEnvironment(this, 'FargateEnv', {
           vpc: props.vpc,
           vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-          securityGroups:  [fargateQSG], 
+          securityGroups:  [fargateQSG],
           enabled: true,
           maxvCpus: 256,
           replaceComputeEnvironment: true,

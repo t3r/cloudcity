@@ -3,10 +3,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as efs from 'aws-cdk-lib/aws-efs';
 import * as s3  from 'aws-cdk-lib/aws-s3';
 import * as iam  from 'aws-cdk-lib/aws-iam';
-// import * as events from 'aws-cdk-lib/aws-events';
-// import * as targets from 'aws-cdk-lib/aws-events-targets';
-// import * as lambda from 'aws-cdk-lib/aws-lambda';
-// import * as path from 'path';
+import * as logs from 'aws-cdk-lib/aws-logs';
 
 import * as datasync from 'aws-cdk-lib/aws-datasync';
 import { Construct } from 'constructs';
@@ -65,6 +62,8 @@ export class DataSyncDestinationLocation extends Construct {
       // s3StorageClass: s3.StorageClass.INFREQUENT_ACCESS,
       subdirectory: '/ws2.0',
     });
+
+    this.s3Location.node.addDependency( props.bucket );
   }
 }
 
@@ -124,6 +123,8 @@ export class DataSyncSourceLocation extends Construct {
       subdirectory: props.accessPointPath,
       fileSystemAccessRoleArn:dataSyncRole.roleArn,
     });
+
+    this.efsLocation.node.addDependency(props.accessPoint );
   }
 }
 
@@ -178,11 +179,19 @@ export class DataSyncTask extends Construct {
   constructor(scope: Construct, id: string, props: DataSyncTaskProps) {
     super(scope, id);
 
+    // Create a log group with the prefix "/aws/datasync"
+    const logGroup = new logs.LogGroup(this, 'DataSyncLogGroup', {
+      logGroupName: '/aws/datasync',
+      retention: logs.RetentionDays.ONE_MONTH,
+      removalPolicy: cdk.RemovalPolicy.DESTROY
+    });
+
     // Create the DataSync task
     this.dataSyncTask = new datasync.CfnTask(this, 'DataSyncTask', {
       sourceLocationArn: props.source.attrLocationArn,
       destinationLocationArn: props.dest.attrLocationArn,
-      cloudWatchLogGroupArn: 'arn:aws:logs:eu-central-1:533267260386:log-group:/aws/datasync:*',
+      cloudWatchLogGroupArn: logGroup.logGroupArn,
+
       name: 'EFSDataSyncTask',
       includes: [ {
         filterType: 'SIMPLE_PATTERN',
@@ -199,5 +208,6 @@ export class DataSyncTask extends Construct {
         transferMode: 'CHANGED',
       },
     });
+    logGroup.grantWrite(new iam.ServicePrincipal('datasync.amazonaws.com'));
   }
 }

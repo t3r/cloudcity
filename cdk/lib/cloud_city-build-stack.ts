@@ -19,13 +19,32 @@ export class CloudCityBuildStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: CloudCityBuildStackProps ) {
     super(scope, id, props);
 
-    const { vpc } = new CloudCityVpc(this, 'VPC');
+
+    const domainParameter = new cdk.CfnParameter(this, 'DomainName', {
+      type: 'String',
+      description: 'Alternate domain name to use for the site (requires a certificate)',
+      default: 'cloudcity.flightgear.org'
+    });
+
+    const certParameter = new cdk.CfnParameter(this, 'DomainCertificate', {
+      type: 'String',
+      description: 'Domain certificate ARN',
+      default: 'arn:aws:acm:us-east-1:605134452115:certificate/ec25c2d1-e570-4b38-8dbb-471bc7fb0270',
+    });
+
+
+    const { vpc } = new CloudCityVpc(this, 'VPC', {
+      cidr: '10.111.0.0/16',
+    });
+
     const { accessPoint, fileSystem, securityGroup } = new CloudCityFileSystem( this, id + '-EFS', { vpc } );
 
     const tilesTable = new CloudCityTilesTable( this,  'TilesTable' );
 
     const { o2cBucket } = new CloudCityUi( this, 'UI', {
       tilesTable: tilesTable.table,
+      certificateArn: certParameter.valueAsString,
+      domainName: domainParameter.valueAsString
     })
 
     const { efsLocation } = new DataSyncSourceLocation(this,'EFSSourceLocation', {

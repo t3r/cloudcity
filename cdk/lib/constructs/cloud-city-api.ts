@@ -53,7 +53,8 @@ export class CloudCityApi extends Construct {
         ],
       },
     });
-    this.userPoolDomain = this.userPool.addDomain('CognitoDomain', {
+
+    this.userPoolDomain = this.userPool.addDomain('CloudCityDomain', {
       cognitoDomain: {
         domainPrefix: 'cloudcity',
       },
@@ -93,7 +94,7 @@ export class CloudCityApi extends Construct {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       partitionKey: { name: 'ConnectionId', type: dynamodb.AttributeType.STRING }
     });
-  
+
     // the websocket integration lambda
     this.websocketIntegrationLambda = new lambda.Function(this, 'WSIntegration', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -154,7 +155,7 @@ export class CloudCityApi extends Construct {
       routeId: defaultRoute.routeId,
       routeResponseKey: '$default'
     });
-    
+
     // REST API
     const apiLambda =  new lambda.Function( this, 'ApiIntegrationLambda', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -177,7 +178,7 @@ export class CloudCityApi extends Construct {
     props.tilesTable.grantReadWriteData( apiLambda );
 
     const apiIntegration = new apigateway.LambdaIntegration( apiLambda );
-    
+
     this.api = new apigateway.RestApi( this, id + '-REST', {
       description: 'REST API for CloudCity',
       deployOptions: {
