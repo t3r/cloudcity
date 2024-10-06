@@ -1,6 +1,20 @@
 
 import { DbAccess } from './dbaccess.mjs';
 
+function groupTilesByStatus(items) {
+    return items.reduce((acc, item) => {
+        // If the status doesn't exist as a key yet, create an empty array for it
+        if (!acc[item.status]) {
+            acc[item.status] = [];
+        }
+
+        // Push the tile to the array for this status
+        acc[item.status].push(item.tile);
+
+        return acc;
+    }, {});
+}
+
 export class TileController {
     static oneoneregex = /^[ew][01]\d{2}[ns]\d{2}$/
     static tentenregex = /^[ew][01]\d0[ns]\d0$/
@@ -28,7 +42,7 @@ export class TileController {
         if( oneone.match(TileController.oneoneregex) ) {
             const body = await this.db.getTilesFor1x1( oneone );
             console.log(`LEAVE getOneOne(${oneone}): ${JSON.stringify(body)}`);
-            return body.Items;
+            return groupTilesByStatus(body.Items);
         } else {
             throw new Error('invalid oneone format');
         }
@@ -42,7 +56,7 @@ export class TileController {
         if( tenten.match(TileController.tentenregex) ) {
           const body = await this.db.getTilesFor10x10( tenten );
           console.log(`LEAVE getTileByTen(${tenten}): ${JSON.stringify(body)}`);
-          return body.Items;
+        return groupTilesByStatus(body.Items);
         } else {
           throw new Error('invalid tenten format');
         }
@@ -52,3 +66,39 @@ export class TileController {
         throw new Error('not implemented: rebuildTenTen', tileInde)
     }
 }
+/*
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+
+const test = async () => {
+    try {
+        const client = new DynamoDBClient({
+            region: process.env.AWS_REGION || "eu-central-1",
+        });
+
+        const documentClient = DynamoDBDocument.from(client);
+        const tc = new TileController({
+            tilesTableName: process.env.TABLE_NAME,
+            documentClient,
+        });
+
+        let x;
+        x = await tc.getTenTen("w080n40");
+        console.log("tenten", x);
+
+        x = await tc.getOneOne("w070n80");
+        console.log("oneone", x);
+
+        x = await tc.getOneOne("e000n01");
+        console.log("oneone - no match", x);
+
+
+
+        x = await tc.getTile(1728611);
+        console.log("byid", x);
+    } catch (e) {
+        console.log(e);
+    }
+}
+test();
+*/

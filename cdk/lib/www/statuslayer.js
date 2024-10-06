@@ -158,14 +158,27 @@ L.StatusLayer = L.FeatureGroup.extend({
 
   // this gets called from the websocket on incoming data
   async handleEvent(evt) {
-    data = evt.data;
+    const data = evt.data;
+    console.log("received event", data);
+    let d;
     if( data.length ) {
-      this.renderTiles(
+      if( data[0].event ) {
+        // raw dynamodb stream event
         // [{"event":"MODIFY","item":{"tile":3105800,"one_one":"e009n54","ten_ten":"e000n50","status":"error","timestamp":1}}]
-        // [{"tile":3105800,"one_one":"e009n54","ten_ten":"e000n50","status":"error","timestamp":1]
-        data.map( d => { return { tile: Number((d.item??d).tile), status: (d.item??d).status } } )
-      );
+        d = data.map(d => { return { tile: Number((d.item).tile), status: (d.item).status } });
+      }
+    } else {
+      console.log("compact event")
+      // compact event
+      //{"done":[],"error":[],"rebuild":[]}
+      d = [];
+      for (const [status, tiles] of Object.entries(data)) {
+        for (const tile of tiles) {
+          d.push({ status, tile });
+        }
+      }
     }
+    this.renderTiles(d);
   },
 
   async refresh() {

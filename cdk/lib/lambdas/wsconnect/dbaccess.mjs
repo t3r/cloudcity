@@ -13,10 +13,12 @@ export class DbAccess {
         KeyConditionExpression: "#tile = :tile",
         ExpressionAttributeNames: {
           "#tile": "tile",
+          "#status": "status",
         },
         ExpressionAttributeValues: {
           ":tile": tile,
         },
+        ProjectionExpression: "#tile, #status",
         Limit: 1,
         ScanIndexForward: false,
       }
@@ -62,11 +64,14 @@ export class DbAccess {
         IndexName: "gsi_1x1",
         KeyConditionExpression: "#one_one = :v_one_one",
         ExpressionAttributeNames: {
+          "#tile": "tile",
           "#one_one": "one_one",
+          "#status": "status",
         },
         ExpressionAttributeValues: {
           ":v_one_one": one_one,
         },
+        ProjectionExpression: "#tile, #status",
       }
     );
   }
@@ -79,39 +84,53 @@ export class DbAccess {
         IndexName: "gsi_10x10",
         KeyConditionExpression: "#ten_ten = :v_ten_ten",
         ExpressionAttributeNames: {
+          "#tile": "tile",
           "#ten_ten": "ten_ten",
+          "#status": "status",
         },
         ExpressionAttributeValues: {
           ":v_ten_ten": ten_ten,
         },
+        ProjectionExpression: "#tile, #status",
       }
     );
   }
 }
 
-/* 
+/*
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 const test = async() => {
   try {
-    let x 
-    x = await updateTileById(3122144, { status: "rebuild", } )
-    console.log("updatebytile: ",x);
+    const client = new DynamoDBClient({
+      region: process.env.AWS_REGION || "eu-central-1",
+    });
 
-    x = await updateTileById([3122160,3122144], { status: "rebuild", } )
-    console.log("updatebytiles: ",x);
+    const documentClient = DynamoDBDocument.from(client);
+    const db = new DbAccess({
+      tilesTableName: process.env.TABLE_NAME,
+      documentClient,
+    });
+    let x
+    // x = await updateTileById(3122144, { status: "rebuild", } )
+    // console.log("updatebytile: ",x);
+
+    // x = await updateTileById([3122160,3122144], { status: "rebuild", } )
+    // console.log("updatebytiles: ",x);
 
 
-    x = await getTilesFor10x10( "w110n20" );
+    x = await db.getTilesFor10x10( "w080n40" );
     console.log("tenten",x);
 
-    x = await getTilesFor1x1( "e010n53" );
+    x = await db.getTilesFor1x1( "w070n80" );
     console.log("oneone",x);
 
-    x = await getTilesFor1x1( "e009n54" );
+    x = await db.getTilesFor1x1( "e000n01" );
     console.log("oneone - no match",x);
 
-    
 
-    x = await getTileById( 3122144 );
+
+    x = await db.getTileById( 1728611 );
     console.log("byid",x);
   }catch(e) {
     console.log(e);
