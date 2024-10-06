@@ -33,15 +33,15 @@ export const handler = async (event) => {
         break;
 
       case '$default':
-        const b = event.isBase64Encoded ? 
+        const b = event.isBase64Encoded ?
                   Buffer.from( event.body, 'base64').toString('utf-8') :
                   event.body;
-        response = await handleDefault(connectionId, JSON.parse(b));
+        response = await handleDefault(JSON.parse(b));
         console.log("response is", response);
         break;
     }
-    return {        
-      statusCode: 200, 
+    return {
+      statusCode: 200,
       body: response ? JSON.stringify(response) : undefined,
     }
   }
@@ -54,44 +54,44 @@ export const handler = async (event) => {
   }
 }
 
-const addConnectionId = (connectionId) => {    
+const addConnectionId = (connectionId) => {
   return documentClient.put({
     TableName: connectionsTableName,
-      Item: {            
-      ConnectionId : connectionId        
+      Item: {
+      ConnectionId : connectionId
     },
   });
 }
 
 const removeConnectionId = (connectionId) => {
   return documentClient.delete({
-    TableName: connectionsTableName,        
-    Key: {            
-      ConnectionId : connectionId,        
-    },    
+    TableName: connectionsTableName,
+    Key: {
+      ConnectionId : connectionId,
+    },
   })
 }
 
-const  handleDefault = async (connectionId, body ) => {
+const  handleDefault = async (body ) => {
   switch( body.action ) {
     case 'getTenTen':
       return tileController.getTenTen( body.key )
 
     case 'rebuildTenTen':
-      return tileController.rebuidTenTen( body.key )
+      return tileController.rebuildTenTen( body.key )
 
     case 'getOneOne':
       return tileController.getOneOne( body.key )
 
     case 'rebuildOneOne':
         return tileController.rebuildOneOne( body.key )
-  
+
     case 'getTile':
       return tileController.getTile( body.key )
 
     case 'rebuildTile':
       return tileController.rebuildTile( body.key )
-  
+
     default:
       throw new Error(`Invalid action ${body.action}`);
   }
