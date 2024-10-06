@@ -2,7 +2,6 @@ class StatusSocket extends EventTarget {
   constructor() {
     super();
     this.uri = `${(window.location.protocol === 'https:' ? 'wss' : 'ws')}://${window.location.host}${window.location.pathname}dev`;
-    //this.uri = 'https://r44cap6aie.execute-api.eu-central-1.amazonaws.com/dev/'
   }
 
   connect() {
@@ -22,7 +21,7 @@ class StatusSocket extends EventTarget {
       this.ws.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-          console.log("received", data );
+          // console.log("received", data );
           this.dispatchEvent(new MessageEvent('message', { data }));
         }
         catch( ex ) {
@@ -157,10 +156,11 @@ L.StatusLayer = L.FeatureGroup.extend({
     }
   },
 
+  // this gets called from the websocket on incoming data
   async handleEvent(evt) {
     data = evt.data;
     if( data.length ) {
-      this.renderTiles( 
+      this.renderTiles(
         // [{"event":"MODIFY","item":{"tile":3105800,"one_one":"e009n54","ten_ten":"e000n50","status":"error","timestamp":1}}]
         // [{"tile":3105800,"one_one":"e009n54","ten_ten":"e000n50","status":"error","timestamp":1]
         data.map( d => { return { tile: Number((d.item??d).tile), status: (d.item??d).status } } )
@@ -175,25 +175,27 @@ L.StatusLayer = L.FeatureGroup.extend({
     const w = bounds.getWest();
     const e = bounds.getEast();
     const s = bounds.getSouth();
-    const n = bounds.getNorth();   
-     
+    const n = bounds.getNorth();
+
     const tilesize = e - w > 3 || n - s > 3 ? 10 : 1;
     const endpoint = tilesize == 1 ? 'OneOne' : 'TenTen';
-  
+    // const endpoint =  'OneOne';
+    // const tilesize = 1;
+
+
     const xspan = e - w;
-  
+
     const ww = Math.floor(w/tilesize)*tilesize;
     const ee = Math.ceil(e/tilesize)*tilesize;
     const ss = Math.floor(s/tilesize)*tilesize;
     const nn = Math.ceil(n/tilesize)*tilesize;
-  
-    let tiles = [];
+
     for( let x = ww; x < ee; x+=tilesize ) {
       for( let y = ss; y < nn; y += tilesize) {
-        tiles.push( formatGSI(x,y));
+        const action = { action: `get${endpoint}`, key: formatGSI(x, y) };
+        this.statusSocket.send(action)
       }
     }
-    this.statusSocket.send( { action: `get${endpoint}`, key: tiles })
   },
 
   renderTenTen(tenten, tile) {
@@ -237,7 +239,7 @@ L.StatusLayer = L.FeatureGroup.extend({
     for( t of tiles ) {
       let tileLayer = this.findTile( t.tile );
       if(tileLayer ) tileLayer.removeFrom(this);
-      
+
       const b = getTileBounds( t.tile );
       const tr = L.rectangle([[b.s,b.w],[b.n,b.e]], {className: `status-${t.status}` });
       tr._tile = t.tile;
