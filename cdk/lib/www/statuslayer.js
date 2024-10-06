@@ -257,7 +257,8 @@ L.StatusLayer = L.FeatureGroup.extend({
       const tr = L.rectangle([[b.s,b.w],[b.n,b.e]], {className: `status-${t.status}` });
       tr._tile = t.tile;
       tr.bindPopup(buildTilePopup(t));
-      tr.bindTooltip(''+t.tile, {permanent: true, direction:"center",className:'tile-label'}).openTooltip()
+      if (this._map.getZoom() >= 8)
+        tr.bindTooltip(''+t.tile, {permanent: true, direction:"center",className:'tile-label'}).openTooltip()
       tr.addTo(this);
     };
   }
