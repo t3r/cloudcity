@@ -41,8 +41,9 @@ export class TileController {
         console.log(`ENTER getOneOne(${oneone})`);
         if( oneone.match(TileController.oneoneregex) ) {
             const body = await this.db.getTilesFor1x1( oneone );
-            console.log(`LEAVE getOneOne(${oneone}): ${JSON.stringify(body)}`);
-            return groupTilesByStatus(body.Items);
+            const response = groupTilesByStatus(body.Items);
+            console.log(`LEAVE getOneOne(${oneone}): ${JSON.stringify(response)}`);
+            return response;
         } else {
             throw new Error('invalid oneone format');
         }
@@ -52,11 +53,11 @@ export class TileController {
     }
 
     async getTenTen( tenten ) {
-        console.log(`ENTER getTileByTen(${tenten})`);
+        console.log(`ENTER getTenTen(${tenten})`);
         if( tenten.match(TileController.tentenregex) ) {
-          const body = await this.db.getTilesFor10x10( tenten );
-          console.log(`LEAVE getTileByTen(${tenten}): ${JSON.stringify(body)}`);
-        return groupTilesByStatus(body.Items);
+            const body = await this.db.getTilesFor10x10( tenten );
+            const response = groupTilesByStatus(body.Items);
+            return response;
         } else {
           throw new Error('invalid tenten format');
         }
@@ -64,6 +65,34 @@ export class TileController {
 
     async rebuildTenTen( tenten ) {
         throw new Error('not implemented: rebuildTenTen', tileInde)
+    }
+
+    async getTenTenStats( tenten ) {
+        console.log(`ENTER getTenTenStats(${tenten})`);
+        const response = {
+            tenten,
+            stats: {},
+        };
+        const st = await this.getTenTen(tenten);
+        for (const [status, tiles] of Object.entries(st)) {
+            response.stats[status] = tiles.length;
+        }
+        console.log(`LEAVE: getTenTenStats(${tenten}): ${JSON.stringify(response)}`);
+        return response;
+    }
+
+    async getOneOneStats(tenten) {
+        console.log(`ENTER getOneOneStats(${tenten})`);
+        const response = {
+            tenten,
+            stats: {},
+        };
+        const st = await this.getOneOne(tenten);
+        for (const [status, tiles] of Object.entries(st)) {
+            response.stats[status] = tiles.length;
+        }
+        console.log(`LEAVE: getOneOneStats(${tenten}): ${JSON.stringify(response)}`);
+        return response;
     }
 }
 /*
@@ -83,19 +112,22 @@ const test = async () => {
         });
 
         let x;
-        x = await tc.getTenTen("w080n40");
-        console.log("tenten", x);
+        // x = await tc.getTenTen("w080n40");
+        // console.log("tenten", x);
 
-        x = await tc.getOneOne("w070n80");
-        console.log("oneone", x);
+        // x = await tc.getOneOne("w070n80");
+        // console.log("oneone", x);
 
-        x = await tc.getOneOne("e000n01");
-        console.log("oneone - no match", x);
+        // x = await tc.getOneOne("e000n01");
+        // console.log("oneone - no match", x);
+
+        x = await tc.getOneOneStats("w080n40");
+        console.log("tentenstats", x);
 
 
 
-        x = await tc.getTile(1728611);
-        console.log("byid", x);
+        // x = await tc.getTile(1728611);
+        // console.log("byid", x);
     } catch (e) {
         console.log(e);
     }

@@ -74,7 +74,10 @@ const removeConnectionId = (connectionId) => {
 
 const  handleDefault = async (body ) => {
   switch( body.action ) {
-    case 'getTenTen':
+    case 'getTenTenStats':
+      return tileController.getTenTenStats(body.key)
+
+      case 'getTenTen':
       return tileController.getTenTen( body.key )
 
     case 'rebuildTenTen':
@@ -82,6 +85,9 @@ const  handleDefault = async (body ) => {
 
     case 'getOneOne':
       return tileController.getOneOne( body.key )
+
+    case 'getOneOneStats':
+      return tileController.getOneOneStats(body.key)
 
     case 'rebuildOneOne':
         return tileController.rebuildOneOne( body.key )
