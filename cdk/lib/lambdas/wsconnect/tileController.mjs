@@ -10,16 +10,10 @@ export class TileController {
     }
 
     async getTile( tileIndex ) {
-        if( Array.isArray(tileIndex) ) {
-            const body = await Promise.all(
-                tileIndex.map(
-                    idx => this.db.getTileById( Number(idx) ), this
-                ))
-            return body.map( b => b.Items[0] );
-        } else {
-            const body = await this.db.getTileById( Number(tileIndex) );
-            return body.Items[0];
-        }
+        console.log(`ENTER getTile(${tileIndex})`);
+        const body = await this.db.getTileById( Number(tileIndex) );
+        console.log(`LEAVE getTile(${tileIndex}): ${JSON.stringify(body)}`);
+        return body.Items[0];
     }
 
     async rebuildTile( tileIndex ) {
@@ -30,14 +24,6 @@ export class TileController {
     }
 
     async getOneOne( oneone ) {
-        if( Array.isArray(oneone) ) {
-            const allOneOnes = await Promise.all(
-                oneone.map(
-                    oo => this.getOneOne( oo ), this
-                ))
-            return [].concat(...allOneOnes);
-        }
-
         console.log(`ENTER getOneOne(${oneone})`);
         if( oneone.match(TileController.oneoneregex) ) {
             const body = await this.db.getTilesFor1x1( oneone );
@@ -52,13 +38,6 @@ export class TileController {
     }
 
     async getTenTen( tenten ) {
-        if( Array.isArray(tenten) ) {
-            const allTenTens = await Promise.all(
-                tenten.map(
-                    tt => this.getTenTen( tt ), this
-                ))
-            return [].concat(...allTenTens);
-        }
         console.log(`ENTER getTileByTen(${tenten})`);
         if( tenten.match(TileController.tentenregex) ) {
           const body = await this.db.getTilesFor10x10( tenten );
@@ -70,6 +49,6 @@ export class TileController {
     }
 
     async rebuildTenTen( tenten ) {
-
+        throw new Error('not implemented: rebuildTenTen', tileInde)
     }
 }
