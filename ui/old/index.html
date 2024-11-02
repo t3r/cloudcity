@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FlightGear CloudCity Status Page</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+          crossorigin=""/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.coordinates@0.1.5/dist/Leaflet.Coordinates-0.1.5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-contextmenu@1.4.0/dist/leaflet.contextmenu.min.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" 
+          integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+            <script src="https://cdn.jsdelivr.net/npm/leaflet-contextmenu@1.4.0/dist/leaflet.contextmenu.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.coordinates@0.1.5/dist/Leaflet.Coordinates-0.1.5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-graticule@0.0.1/Leaflet.Graticule.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script src="./statuslayer.js"></script>
+
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+        }
+        path.status-none {
+          fill: lightgray;
+          fill-opacity: 0.2;
+          stroke-width: 1px;
+          stroke: gray;
+          stroke-opacity: 0.5;
+        }
+
+        path.status-done {
+          fill: green;
+          fill-opacity: 0.2;
+          stroke-width: 1px;
+          stroke: green;
+          stroke-opacity: 0.5;
+        }
+
+        path.status-inprogress {
+          fill: lightblue;
+          fill-opacity: 0.2;
+          stroke-width: 1px;
+          stroke: blue;
+          stroke-opacity: 0.5;
+        }
+
+        path.status-error {
+          fill: red;
+          fill-opacity: 0.2;
+          stroke-width: 1px;
+          stroke: red;
+          stroke-opacity: 0.5;
+        }
+
+        path.status-rebuild {
+          fill: rgb(0, 4, 255);
+          fill-opacity: 0.2;
+          stroke-width: 1px;
+          stroke: rgb(225, 0, 255);
+          stroke-opacity: 0.5;
+        }
+        .tile-label {
+          background: transparent;
+          box-shadow: none;
+          border: 0;
+          color: black;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script src="./map.js"></script>
+</body>
+</html>

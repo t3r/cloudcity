@@ -71,6 +71,10 @@ jobs:
           tags: |
             ${{ steps.login-ecr.outputs.registry }}/cloudcity:${{ github.sha }}-amd64
 
+      - name: Build UI
+        run: npm run build
+        working-directory: ./ui
+
       - name: Deploy infra for builder
         run: >-
           npx cdk deploy

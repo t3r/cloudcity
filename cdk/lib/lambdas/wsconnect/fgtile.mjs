@@ -37,13 +37,29 @@ export const getTileBounds = (tile) => {
 
 export const getTiles = ( bounds ) => {
   const tiles = [];
-  for( let lat = Math.floor(bounds.s); lat < Math.ceil(bounds.n); lat += 1/8 ) {
+  for( let lat = (bounds.s); lat < (bounds.n); lat += 1/8 ) {
     const w = tileWidth( lat );
-    for( let lon = Math.floor(bounds.w); lon < Math.ceil(bounds.e); lon += w ) {
+    for( let lon = (bounds.w); lon < (bounds.e); lon += w ) {
       tiles.push( {s:lat, w:lon, n:lat+1/8, e:lon+w, idx:getTileIdx({lat,lon})} );
     }
   }
   return tiles;
+}
+
+
+
+const get_X_Xs = ( bounds, scale ) => {
+  const folders = getTiles(bounds) // get tiles within bounds
+    .map((t) => getPositionFolder((t.e+t.w)/2, (t.n+t.s)/2, scale)); // get folder for each tile
+  return [...new Set(folders)]; // remove duplicates
+}
+
+export const getTenTens = (bounds) => {
+ return get_X_Xs(bounds, 10);
+}
+
+export const getOneOnes = (bounds) => {
+  return get_X_Xs(bounds, 1);
 }
 
 export const getTilesInFolder = ( folder, scale ) => {
@@ -68,19 +84,21 @@ export const getTilesInFolder = ( folder, scale ) => {
 export const getTileFolder = (tileIndex, scale ) => {
   scale = scale || 1;
   const bounds = getTileBounds(tileIndex);
-  let o = Math.floor( bounds.centerLongitude/scale ) * scale;
+  return getPositionFolder(bounds.centerLongitude, bounds.centerLatitude, scale);
+}
+
+export const getPositionFolder = (x,y,scale) => {
+  let o = Math.floor(x / scale) * scale;
   let ew = "e"
-  if( o < 0 ) {
+  if (o < 0) {
     ew = "w"
     o = -o
   }
-  let n = Math.floor( bounds.centerLatitude/scale ) * scale;
+  let n = Math.floor(y / scale) * scale;
   let ns = "n"
-  if( n < 0 ) {
+  if (n < 0) {
     n = -n
     ns = "s"
   }
-  return `${ew}${String(o).padStart(3,'0')}${ns}${String(n).padStart(2,'0')}`
+  return `${ew}${String(o).padStart(3, '0')}${ns}${String(n).padStart(2, '0')}`
 }
-
-

@@ -1,5 +1,6 @@
 
 import { DbAccess } from './dbaccess.mjs';
+import { getTiles, getOneOnes, getTenTens } from './fgtile.mjs';
 
 function groupTilesByStatus(items) {
     return items.reduce((acc, item) => {
@@ -94,43 +95,143 @@ export class TileController {
         console.log(`LEAVE: getOneOneStats(${tenten}): ${JSON.stringify(response)}`);
         return response;
     }
-}
-/*
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
 
-const test = async () => {
-    try {
-        const client = new DynamoDBClient({
-            region: process.env.AWS_REGION || "eu-central-1",
-        });
+    async getTileStatus( params ) {
+        console.log(`ENTER gettileStatus(${JSON.stringify(params)})`);
+        const reply = {
+            status: 'ERROR',
+            reason: 'not implemented',
+            requestId: params.requestId,
+        }
 
-        const documentClient = DynamoDBDocument.from(client);
-        const tc = new TileController({
-            tilesTableName: process.env.TABLE_NAME,
-            documentClient,
-        });
+        if( params.zoom == 0 ) { // fg-tile
+            const tiles = getTiles({
+                s: params.bounds?.min?.lat,
+                w: params.bounds?.min?.lng,
+                n: params.bounds?.max?.lat,
+                e: params.bounds?.max?.lng
+            })
+            if( tiles.length > 100 ) {
+                reply.reason = 'area too big, too many tiles';
+            } else {
+                reply.status = 'OK';
+                delete reply.reason;
+                reply.tiles = tiles;
+            }
+        } else if( params.zoom == 1 ) { // 1x1
+            const oneOnes = getOneOnes({
+                    s: params.bounds?.min?.lat,
+                    w: params.bounds?.min?.lng,
+                    n: params.bounds?.max?.lat,
+                    e: params.bounds?.max?.lng
+            });
 
-        let x;
-        // x = await tc.getTenTen("w080n40");
-        // console.log("tenten", x);
+            if (oneOnes.length > 100) {
+                reply.reason = 'area too big, too many oneones';
+            } else {
+                const dbData = await Promise.all(oneOnes.map(oneone => this.db.getTilesFor1x1(oneone)));
+                const data = dbData.reduce((acc, item, idx) => {
+                    acc[oneOnes[idx]] = groupTilesByStatus(item.Items);
+                    return acc;
+                }, {} );
 
-        // x = await tc.getOneOne("w070n80");
-        // console.log("oneone", x);
+                reply.status = 'OK';
+                delete reply.reason;
+                reply.oneOnes = data;
+            }
 
-        // x = await tc.getOneOne("e000n01");
-        // console.log("oneone - no match", x);
+        } else if( params.zoom == 2 ) { // 10x10
+            const tenTens = getTenTens({
+                s: params.bounds?.min?.lat,
+                w: params.bounds?.min?.lng,
+                n: params.bounds?.max?.lat,
+                e: params.bounds?.max?.lng
+            });
+            if (tenTens.length > 100) {
+                reply.reason = 'area too big, too many oneones';
+            } else {
+                const dbData = await Promise.all(tenTens.map(tenten => this.db.getTilesFor10x10(tenten)));
+                const data = dbData.reduce((acc, item, idx) => {
+                    const tenten = tenTens[idx];
+                    const ttAcc = acc[tenten] = acc[tenten] ?? {};
 
-        x = await tc.getOneOneStats("w080n40");
-        console.log("tentenstats", x);
-
-
-
-        // x = await tc.getTile(1728611);
-        // console.log("byid", x);
-    } catch (e) {
-        console.log(e);
+                    console.log(tenten,"->",ttAcc,item);
+                    item.Items.reduce((ttAcc, ooItem) => {
+                        const ooAcc = ttAcc[ooItem.one_one] = ttAcc[ooItem.one_one] ?? {};
+                        if (ooAcc[ooItem.status] === undefined) {
+                            ooAcc[ooItem.status] = 1;
+                        } else {
+                            ooAcc[ooItem.status] += 1;
+                        }
+                        return ttAcc;
+                    }, ttAcc);
+                    return acc;
+                }, {});
+                reply.status = 'OK';
+                delete reply.reason;
+                reply.tenTens = data;
+            }
+        }
+        console.log(`LEAVE gettileStatus(${JSON.stringify(params)}): ${JSON.stringify(reply)}`);
+        return reply;
     }
 }
-test();
-*/
+
+// import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+// import { DynamoDBDocument } from "@aws-sdk/lib-dynamodb";
+// import * as util from 'util';
+
+// const test = async () => {
+//     try {
+//         const client = new DynamoDBClient({
+//             region: process.env.AWS_REGION || "eu-central-1",
+//         });
+
+//         const documentClient = DynamoDBDocument.from(client);
+//         const tc = new TileController({
+//             tilesTableName: process.env.TABLE_NAME,
+//             documentClient,
+//         });
+
+//         let x;
+//         x = await tc.getTileStatus(
+//            {
+//                 "action": "getTileStatus",
+//                 "requestId": "f1792288-5e3b-4e98-88c0-b79a9d34de02",
+//                 "bounds": {
+//                     "min": {
+//                         "lat": 41.72623044860004,
+//                         "lng": -74.25109863281251
+//                     },
+//                     "max": {
+//                         "lat": 42.974511174899185,
+//                         "lng": -69.50500488281251
+//                     }
+//                 },
+//                 "zoom": 1
+//             }
+//         );
+//         console.log("getTileStatus", util.inspect(x, { depth: null }));
+
+
+//         // x = await tc.getTenTen("w080n40");
+//         // console.log("tenten", x);
+
+//         // x = await tc.getOneOne("w070n80");
+//         // console.log("oneone", x);
+
+//         // x = await tc.getOneOne("e000n01");
+//         // console.log("oneone - no match", x);
+
+//         // x = await tc.getOneOneStats("w080n40");
+//         // console.log("tentenstats", x);
+
+
+
+//         // x = await tc.getTile(1728611);
+//         // console.log("byid", x);
+//     } catch (e) {
+//         console.log(e);
+//     }
+// }
+// test();

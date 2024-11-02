@@ -98,6 +98,9 @@ const  handleDefault = async (body ) => {
     case 'rebuildTile':
       return tileController.rebuildTile( body.key )
 
+    case 'getTileStatus':
+      return tileController.getTileStatus( body )
+
     default:
       throw new Error(`Invalid action ${body.action}`);
   }

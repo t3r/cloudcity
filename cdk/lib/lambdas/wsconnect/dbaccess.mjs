@@ -87,11 +87,12 @@ export class DbAccess {
           "#tile": "tile",
           "#ten_ten": "ten_ten",
           "#status": "status",
+          "#one_one": "one_one",
         },
         ExpressionAttributeValues: {
           ":v_ten_ten": ten_ten,
         },
-        ProjectionExpression: "#tile, #status",
+        ProjectionExpression: "#tile, #status, #one_one"
       }
     );
   }
