@@ -72,7 +72,7 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/cloudcity:${{ github.sha }}-amd64
 
       - name: Build UI
-        run: npm run build
+        run: npm ci && npm run build
         working-directory: ./ui
 
       - name: Deploy infra for builder
