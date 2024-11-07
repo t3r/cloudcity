@@ -26,15 +26,16 @@ export interface CloudCityApiProps {
 }
 
 export class CloudCityApi {
-    public readonly bounds: Ref<L.LatLngBounds>;
+    public readonly bounds: Ref<L.LatLngBounds|null>;
+    public readonly data: Ref<any>;
 
     private readonly _send: (data: string | ArrayBuffer | Blob, useBuffer?: boolean) => boolean
 
     constructor(props: CloudCityApiProps) {
-        this.bounds = ref(props.bounds || L.latLngBounds(L.latLng(0, 0), L.latLng(0, 0)));
+        this.bounds = ref(props.bounds ?? null);
 
         // Establish the websocket connection
-        const { status, data, send } = useWebSocket(props.uri, {
+        const { status, data, send, open } = useWebSocket(props.uri, {
             autoReconnect: {
                 retries: 3,
                 delay: 1000,
@@ -42,30 +43,16 @@ export class CloudCityApi {
                     alert('Failed to connect WebSocket after 3 retries')
                 },
             },
+
         })
         this._send = send;
+        this.data = data;
 
         // watch our "bounds" property and send a query to the backend on change
-        watchEffect(() => {
-            this.queryRegion(this.bounds.value);
+        watch(this.bounds, (b) => {
+            this.queryRegion(b);
         })
 
-
-        watchEffect(() => {
-            if (status.value === 'OPEN') {
-                console.log('Hello WebSocket')
-            }
-        })
-
-        watchEffect(() => {
-            if (status.value === 'CLOSED') {
-                console.log('Bye WebSocket')
-            }
-        })
-
-        watch(data, (value) => {
-            console.log('Received data', value)
-        })
     }
 
     apiCall( message: ApiCall ) {
@@ -75,7 +62,11 @@ export class CloudCityApi {
         }
     }
 
-    queryRegion(bounds: L.LatLngBounds ) {
+    queryRegion(bounds: L.LatLngBounds|null ) {
+        if( !bounds ) return;
+        const width = bounds.getEast() - bounds.getWest();
+        const height = bounds.getNorth() - bounds.getSouth();
+        const zoom = width * height > 99 ? 2 : 1;
         const message: ReqionQueryApiCall = {
             action: 'getTileStatus',
             requestId: uuid.v4(),
@@ -89,7 +80,7 @@ export class CloudCityApi {
                     lng: bounds.getNorthEast().lng
                 }
             },
-            zoom: 0,
+            zoom,
          };
 
         this.apiCall(message);

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watchEffect, onMounted, onUnmounted, type Ref} from 'vue';
+import { watch, onMounted, onUnmounted, type Ref} from 'vue';
 import { storeToRefs } from 'pinia'
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
@@ -13,8 +13,38 @@ import { CloudCityApi } from './api';
 const cloudCityApi = new CloudCityApi({
   // uri: `${(window.location.protocol === 'https:' ? 'wss' : 'ws')}://${window.location.host}/dev`,
   uri: 'wss://cloudcity.flightgear.org/dev',
-  bounds: L.latLngBounds(L.latLng(0,0), L.latLng(0,0)),
 });
+
+watch( cloudCityApi.data, (value) => {
+  let x;
+  try {
+    x = JSON.parse( value );
+    // console.log("map has data", x );
+  }
+  catch( ex ) {
+    console.error("can't parse ncoming data as json.", value );
+    return;
+  }
+
+  if( "OK" !== x.status ) {
+    console.error("Error response - ignoring.", x );
+    return;
+  }
+
+  if( map === undefined ) {
+    console.log("map is not defined, ignoring data");
+    return;
+  }
+
+  if( x.oneOnes) {
+    console.log("rendering 1x1", x.oneOnes);
+    map.fire("render-oneone", { data: x.oneOnes } );
+  }
+  if( x.tenTens) {
+    console.log("rendering 10x10", x.tenTens);
+    map.fire("render-tenten", { data: x.tenTens });
+  }
+})
 
 let boundsChangeTimeout: number | null = null;
 const handleBoundsChange = () => {
@@ -49,10 +79,7 @@ onMounted(()=> {
     map = L.map(mapElement).setView([center.lat,center.lng], Z);
     map.on('zoomend', () => { localStorage.setItem( 'map-zoom', map.getZoom().toString())  } );
     map.on('moveend', () => { localStorage.setItem( 'map-center', JSON.stringify(map.getCenter()) ) } );
-
-    // Add event listeners for both zoom and move events
-    map.on('moveend', handleBoundsChange);
-    map.on('zoomend', handleBoundsChange);
+    map.on('moveend zoomend', handleBoundsChange);
 
     const mapLink = '<a href="https://openstreetmap.org">OpenStreetMap</a>';
     L.tileLayer(
@@ -73,6 +100,7 @@ onMounted(()=> {
 
     (L as any).tileStatusLayer().addTo(map);
 
+    setTimeout(() => handleBoundsChange(), 100 );
   }
 });
 </script>
@@ -86,4 +114,5 @@ onMounted(()=> {
   height: 100%;
   width: 100%;
 }
+
 </style>
