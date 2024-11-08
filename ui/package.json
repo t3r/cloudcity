@@ -17,6 +17,7 @@
     "leaflet": "^1.9.4",
     "leaflet-contextmenu": "^1.4.0",
     "leaflet-graticule": "^0.0.1",
+    "leaflet.coordinates": "^0.1.5",
     "pinia": "^2.1.7",
     "vue": "^3.4.29",
     "vue-router": "^4.3.3",

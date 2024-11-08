@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { watch, onMounted, onUnmounted, type Ref} from 'vue';
-import { storeToRefs } from 'pinia'
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
 import "./tilestatuslayer.js"
 import 'leaflet-graticule/Leaflet.Graticule.js'
+import 'leaflet.coordinates/dist/Leaflet.Coordinates-0.1.5.min.js'
+import 'leaflet.coordinates/dist/Leaflet.Coordinates-0.1.5.css'
+import * as fgtile from './fgtile'
 
 let map: L.Map;
 
@@ -99,6 +101,31 @@ onMounted(()=> {
     }).addTo(map);
 
     (L as any).tileStatusLayer().addTo(map);
+
+    (L.control as any).coordinates({
+      position:"bottomleft",
+      decimals:6,
+      decimalSeperator:",",
+      labelTemplateLat:"Lat: {y}",
+      labelTemplateLng:"Lng: {x}",
+      useLatLngOrder:false,
+    }).addTo(map);
+
+    (L.control as any).coordinates({
+      position:"bottomleft",
+      useDMS:true,
+      labelTemplateLat:"Lat: {y}",
+      labelTemplateLng:"Lng: {x}",
+      useLatLngOrder:false,
+    }).addTo(map);
+
+    (L.control as any).coordinates({
+      position:"bottomleft",
+      customLabelFcn: function(ll: L.LatLng ) {
+        return "tile #" + fgtile.tileIndexFromCoordinate(ll.lat,ll.lng);
+      },
+}).addTo(map);
+
 
     setTimeout(() => handleBoundsChange(), 100 );
   }

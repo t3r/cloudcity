@@ -1,28 +1,4 @@
-function tileWidth(lat) {
-    lat = Math.abs(lat);
-    if (lat < 22) return 1.0 / 8.0;
-    if (lat < 62) return 1.0 / 4.0;
-    if (lat < 76) return 1.0 / 2.0;
-    if (lat < 83) return 1.0 / 1.0;
-    if (lat < 86) return 2.0 / 1.0;
-    if (lat < 88) return 4.0 / 1.0;
-    if (lat < 89) return 8.0 / 1.0;
-    return 360.0;
-}
-
-const getTileBounds = (tile) => {
-    const x = (tile >> 0) & 0x07;
-    const y = (tile >> 3) & 0x07;
-    const lat = (((tile >> 6) & 0xff) - 90.0) + 0.125 * y;
-    const lon = ((tile >> 14)) - 180.0;
-    const c = {
-        s: lat,
-        n: lat + 0.125,
-        w: lon + x * tileWidth(lat),
-        e: lon + (x + 1) * tileWidth(lat),
-    }
-    return c;
-}
+import * as fgtile from './fgtile'
 
 const getOneOneBounds = (oneone) => {
     // Regex to parse the parts in format (e|w)(number)(n|s)(number)
@@ -67,6 +43,18 @@ L.TileStatusLayer = L.FeatureGroup.extend({
         if (layerId) return this._layers[layerId];
     },
 
+    removeTiles() {
+        let l;
+        while( (l = Object.keys(this._layers).find(x => this._layers[x]._tile)) !== undefined )
+            L.removeFrom(this);
+    },
+
+    removeOneOnes() {
+        let l;
+        while ((l = Object.keys(this._layers).find(x => this._layers[x]._oneone)) !== undefined)
+            L.removeFrom(this);
+    },
+
     findOneOne(oneone) {
         const l = Object.keys(this._layers);
         const layerId = l.find(x => this._layers[x]._oneone == oneone, this);
@@ -74,6 +62,7 @@ L.TileStatusLayer = L.FeatureGroup.extend({
     },
 
     renderTenTen(evt) {
+        this.removeTiles();
         Object.keys(evt.data).forEach(key => {
             const tenten = evt.data[key];
             Object.keys(tenten).forEach(oneone => {
@@ -87,7 +76,10 @@ L.TileStatusLayer = L.FeatureGroup.extend({
                 else if (status.rebuild) cls = 'rebuild';
                 else if (status.inprogress) cls = 'inprogress';
                 else if( status.done ) cls = 'done';
-                const tr = L.rectangle([[b.s, b.w], [b.n, b.e]], { className: `status-${cls}` });
+                const tr = L.rectangle([[b.s, b.w], [b.n, b.e]], {
+                    className: `status-${cls}`,
+                    interactive: false,
+                });
                 tr._oneone = oneone;
                 tr.addTo(this);
             });
@@ -95,7 +87,7 @@ L.TileStatusLayer = L.FeatureGroup.extend({
     },
 
     renderOneOne(evt) {
-        //TODO: remove the oneones
+        this.removeTiles();
         Object.keys(evt.data).forEach(key => {
             const oneone = evt.data[key];
             Object.keys(oneone).forEach(status => {
@@ -105,12 +97,19 @@ L.TileStatusLayer = L.FeatureGroup.extend({
                     let tileLayer = this.findTile(tile);
                     if (tileLayer) tileLayer.removeFrom(this);
 
-                    const b = getTileBounds(tile);
-                    const tr = L.rectangle([[b.s, b.w], [b.n, b.e]], { className: `status-${status}` });
+                    const b = fgtile.getTileBounds(tile);
+                    const tr = L.rectangle([[b.s, b.w], [b.n, b.e]], {
+                        className: `status-${status}`,
+                        interactive: false,
+                    });
                     tr._tile = tile;
                     // tr.bindPopup(buildTilePopup(t));
-                    if (this._map.getZoom() >= 8)
-                        tr.bindTooltip('' + tile, { permanent: true, direction: "center", className: 'tile-label' }).openTooltip()
+                    // if (this._map.getZoom() >= 8)
+                    //     tr.bindTooltip('' + tile, {
+                    //         permanent: true,
+                    //         direction: "center",
+                    //         className: 'tile-label'
+                    //     }).openTooltip()
                     tr.addTo(this);
                 });
             });
