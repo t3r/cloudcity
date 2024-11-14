@@ -58,7 +58,6 @@ export class CloudCityApi {
     apiCall( message: ApiCall ) {
         if( this._send ) {
             this._send(JSON.stringify(message));
-            console.log("Sent message", message);
         }
     }
 

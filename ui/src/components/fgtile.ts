@@ -41,3 +41,19 @@ export function tileIndexFromCoordinate(lat: number, lon: number): number {
     var tile = Math.trunc(((Math.trunc(Math.floor(lon)) + 180) << 14) + ((Math.trunc(Math.floor(lat)) + 90) << 6) + (y << 3) + x);
     return tile;
 }
+
+export function getDirFromCoordinate(lat: number, lon: number, scale: number): string {
+    const paddedSignedValue = ( val: number, signs: string[], width: number, scale: number ) => {
+        let sign = signs[0];
+        val = Math.floor(val/scale)*scale;
+        if( val < 0 ) {
+            val *= -1;
+            sign = signs[1];
+        }
+        const paddedVal = val.toString().padStart(width, '0');
+        return [sign, paddedVal];
+    }
+    let lonVal = paddedSignedValue(lon, ['e', 'w'], 3, scale);
+    let latVal = paddedSignedValue(lat, ['n', 's'], 2, scale );
+    return `${lonVal[0]}${lonVal[1]}${latVal[0]}${latVal[1]}`;
+}

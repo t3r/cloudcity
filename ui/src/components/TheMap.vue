@@ -21,10 +21,32 @@ watch( cloudCityApi.data, (value) => {
   let x;
   try {
     x = JSON.parse( value );
-    // console.log("map has data", x );
   }
   catch( ex ) {
     console.error("can't parse ncoming data as json.", value );
+    return;
+  }
+
+  if( Array.isArray( x ) ) {
+
+    // {
+    //   event: 'MODIFY',
+    //   item: { tile: 12345, one_one: 'e000n00', ten_ten: 'e000n00', status: 'done' }
+    // }
+
+    x.forEach(element => {
+      switch( element.event ) {
+        case 'MODIFY':
+          map.fire("modify-tile", { data: element })
+          break;
+
+        default:
+          console.error("ignoring unhandled event", x );
+          break;
+      }
+    });
+
+
     return;
   }
 
@@ -122,7 +144,9 @@ onMounted(()=> {
     (L.control as any).coordinates({
       position:"bottomleft",
       customLabelFcn: function(ll: L.LatLng ) {
-        return "tile #" + fgtile.tileIndexFromCoordinate(ll.lat,ll.lng);
+        return `${fgtile.getDirFromCoordinate(ll.lat,ll.lng,10)}/`+
+               `${fgtile.getDirFromCoordinate(ll.lat,ll.lng,1)}/`+
+               `${fgtile.tileIndexFromCoordinate(ll.lat,ll.lng)}`;
       },
 }).addTo(map);
 

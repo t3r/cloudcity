@@ -29,12 +29,21 @@ L.TileStatusLayer = L.FeatureGroup.extend({
         this._map = map;
         map.on("render-oneone", this.renderOneOne, this );
         map.on("render-tenten", this.renderTenTen, this);
+        map.on("modify-tile", this.renderModifyTile, this);
     },
 
     onRemove(map) {
+        map.off("modify-tile", this.renderModifyTile, this);
         map.off("render-tenten", this.renderTenTen, this);
         map.off("render-oneone", this.renderOneOne, this);
         L.FeatureGroup.prototype.onRemove.call(this, map);
+    },
+
+    renderModifyTile(evt) {
+        // check zoom level
+        const isSingleTileVisible = this._map.getZoom() >= 8;
+        const { item } = evt.data;
+        if( isSingleTileVisible ) this.renderTile( item.tile, item.status );
     },
 
     findTile(tile) {
@@ -44,15 +53,15 @@ L.TileStatusLayer = L.FeatureGroup.extend({
     },
 
     removeTiles() {
-        let l;
-        while( (l = Object.keys(this._layers).find(x => this._layers[x]._tile)) !== undefined )
-            L.removeFrom(this);
+        let _l;
+        while( (_l = Object.keys(this._layers).find(x => this._layers[x]._tile)) !== undefined )
+            this._layers[_l].removeFrom(this);
     },
 
     removeOneOnes() {
-        let l;
-        while ((l = Object.keys(this._layers).find(x => this._layers[x]._oneone)) !== undefined)
-            L.removeFrom(this);
+        let _l;
+        while ((_l = Object.keys(this._layers).find(x => this._layers[x]._oneone)) !== undefined)
+            this._layers[_l].removeFrom(this);
     },
 
     findOneOne(oneone) {
@@ -73,8 +82,8 @@ L.TileStatusLayer = L.FeatureGroup.extend({
                 const status = tenten[oneone];
                 let cls = 'none';
                 if( status.error ) cls = 'error';
-                else if (status.rebuild) cls = 'rebuild';
                 else if (status.inprogress) cls = 'inprogress';
+                else if (status.rebuild) cls = 'rebuild';
                 else if( status.done ) cls = 'done';
                 const tr = L.rectangle([[b.s, b.w], [b.n, b.e]], {
                     className: `status-${cls}`,
@@ -87,33 +96,39 @@ L.TileStatusLayer = L.FeatureGroup.extend({
     },
 
     renderOneOne(evt) {
+        const me = this;
         this.removeTiles();
         Object.keys(evt.data).forEach(key => {
             const oneone = evt.data[key];
             Object.keys(oneone).forEach(status => {
                 const tiles = oneone[status];
                 tiles.forEach(tile => {
-                    // remove existing tile
-                    let tileLayer = this.findTile(tile);
-                    if (tileLayer) tileLayer.removeFrom(this);
+                    this.renderTile(tile, status);
+                }, this);
+            }, this);
+        }, this);
+    },
 
-                    const b = fgtile.getTileBounds(tile);
-                    const tr = L.rectangle([[b.s, b.w], [b.n, b.e]], {
-                        className: `status-${status}`,
-                        interactive: false,
-                    });
-                    tr._tile = tile;
-                    // tr.bindPopup(buildTilePopup(t));
-                    // if (this._map.getZoom() >= 8)
-                    //     tr.bindTooltip('' + tile, {
-                    //         permanent: true,
-                    //         direction: "center",
-                    //         className: 'tile-label'
-                    //     }).openTooltip()
-                    tr.addTo(this);
-                });
-            });
+    renderTile(tile, status) {
+        console.log("render tile", tile, status)
+        // remove existing tile
+        let tileLayer = this.findTile(tile);
+        if (tileLayer) tileLayer.removeFrom(this);
+
+        const b = fgtile.getTileBounds(tile);
+        const tr = L.rectangle([[b.s, b.w], [b.n, b.e]], {
+            className: `status-${status}`,
+            interactive: false,
         });
+        tr._tile = tile;
+        // tr.bindPopup(buildTilePopup(t));
+        // if (this._map.getZoom() >= 8)
+        //     tr.bindTooltip('' + tile, {
+        //         permanent: true,
+        //         direction: "center",
+        //         className: 'tile-label'
+        //     }).openTooltip()
+        tr.addTo(this);
     }
 });
 
