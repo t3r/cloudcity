@@ -73,7 +73,7 @@ const updateTileStatusRebuild = ( tile ) => {
 }
 
 const updateTileById = (id, body) => {
-  console.log(`ENTER updateTileById(${id},${body})`);
+  console.log(`ENTER updateTileById(${id},${JSON.stringify(body)})`);
   switch( body.status ) {
     case "rebuild":
       return updateTileStatusRebuild( id )
@@ -84,7 +84,7 @@ const updateTileById = (id, body) => {
 }
 
 const updateTileByOne = (id, body) => {
-  console.log(`ENTER updateTileByOne(${id},${body})`);
+  console.log(`ENTER updateTileByOne(${id},${JSON.stringify(body) })`);
   const tiles = tile.getTilesInFolder( id, 1 ).map( t => t.idx );
   switch( body.status ) {
     case "rebuild":
@@ -93,10 +93,10 @@ const updateTileByOne = (id, body) => {
     default:
       throw Error("Invalid status to update")
   }
-} 
+}
 
 const updateTileByTen = async(id, body) => {
-  console.log(`ENTER updateTileByTen(${id},${body})`);
+  console.log(`ENTER updateTileByTen(${id},${JSON.stringify(body) })`);
   const tiles = tile.getTilesInFolder( id, 10 ).map( t => t.idx );
   switch( body.status ) {
     case "rebuild":
@@ -226,7 +226,7 @@ export const handler = async (event, context) => {
     console.log("event", JSON.stringify(event));
     body = await router.route(event);
     console.log("response", JSON.stringify(body));
-  } 
+  }
   catch (err) {
     console.error(err);
     statusCode = 400;
@@ -241,41 +241,27 @@ export const handler = async (event, context) => {
     headers,
   };
 };
-/*
-!async function test()  {
-console.log('**',JSON.stringify(
-  await handler(
-{
-  resource: '/1x1/{id}',
-  path: '/1x1/e009n53',
-  httpMethod: 'POST',
-  queryStringParameters: null,
-  multiValueQueryStringParameters: null,
-  pathParameters: { id: 'e000n50' },
-  requestContext: {
-    resourceId: '9mrn5m',
-    resourcePath: '/10x10/{id}',
-    httpMethod: 'POST',
-    requestId: 'aa914fa9-e230-4eac-aa07-74ef44b17e86',
-    identity: {
-      cognitoIdentityPoolId: null,
-      accountId: null,
-      cognitoIdentityId: null,
-      caller: null,
-      sourceIp: '2001:9e8:e3d1:fa00:b0c8:f3d8:be77:35a1',
-      principalOrgId: null,
-      accessKey: null,
-      cognitoAuthenticationType: null,
-      cognitoAuthenticationProvider: null,
-      userArn: null,
-      userAgent: 'Amazon CloudFront',
-      user: null
+
+import { parseArgs } from 'util';
+const {
+  values,
+  positionals
+} = parseArgs({
+  options: {
+    'rebuild1x1': {
+      type: 'string',
+      short: 'o',
     },
+    'rebuild10x10': {
+      type: 'string',
+      short: 't',
+    }
   },
-  body: null,
-  isBase64Encoded: false
-}
-)
-));
-}();
-*/
+  allowPositionals: true
+});
+
+if (values.rebuild10x10)
+  await updateTileByTen(values.rebuild10x10, { status: 'rebuild' });
+
+if (values.rebuild1x1)
+  await updateTileByOne(values.rebuild1x1, { status: 'rebuild' });
