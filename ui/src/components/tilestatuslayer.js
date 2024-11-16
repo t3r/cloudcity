@@ -90,6 +90,7 @@ L.TileStatusLayer = L.FeatureGroup.extend({
                     interactive: false,
                 });
                 tr._oneone = oneone;
+                tr._status = status;
                 tr.addTo(this);
             });
         })
@@ -97,7 +98,7 @@ L.TileStatusLayer = L.FeatureGroup.extend({
 
     renderOneOne(evt) {
         const me = this;
-        this.removeTiles();
+        this.removeOneOnes();
         Object.keys(evt.data).forEach(key => {
             const oneone = evt.data[key];
             Object.keys(oneone).forEach(status => {

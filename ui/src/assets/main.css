@@ -24,7 +24,7 @@ path.status-done {
 }
 
 path.status-inprogress {
-  fill: lightblue;
+  fill: blue;
   fill-opacity: 0.2;
   stroke-width: 1px;
   stroke: blue;
@@ -40,10 +40,10 @@ path.status-error {
 }
 
 path.status-rebuild {
-  fill: rgb(0, 4, 255);
+  fill: lightblue;
   fill-opacity: 0.2;
   stroke-width: 1px;
-  stroke: rgb(225, 0, 255);
+  stroke: blue;
   stroke-opacity: 0.5;
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onMounted, onUnmounted, type Ref} from 'vue';
+import { watch, ref,  onMounted, onUnmounted, type Ref} from 'vue';
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
 import "./tilestatuslayer.js"
@@ -16,6 +16,15 @@ const cloudCityApi = new CloudCityApi({
   // uri: `${(window.location.protocol === 'https:' ? 'wss' : 'ws')}://${window.location.host}/dev`,
   uri: 'wss://cloudcity.flightgear.org/dev',
 });
+
+interface ApiEvent {
+  timeStamp: number;
+  type: string;
+  tile: number;
+  status: string;
+}
+
+const apiEvents = ref<ApiEvent[]>([]);
 
 watch( cloudCityApi.data, (value) => {
   let x;
@@ -37,6 +46,7 @@ watch( cloudCityApi.data, (value) => {
     x.forEach(element => {
       switch( element.event ) {
         case 'MODIFY':
+          apiEvents.value.push( { timeStamp: Date.now(), type: 'modify', tile: element.item.tile, status: element.item.status } );
           map.fire("modify-tile", { data: element })
           break;
 
@@ -148,16 +158,34 @@ onMounted(()=> {
                `${fgtile.getDirFromCoordinate(ll.lat,ll.lng,1)}/`+
                `${fgtile.tileIndexFromCoordinate(ll.lat,ll.lng)}`;
       },
-}).addTo(map);
-
-
+    }).addTo(map);
     setTimeout(() => handleBoundsChange(), 100 );
   }
 });
 </script>
 
 <template>
-  <div id="map">Hi - there is no map here, obviously. This is a bug.</div>
+   <div class="container-fluid h-100">
+    <div class="row h-100">
+      <div class="col-10 p-0">
+        <div id="map">Hi - there is no map here, obviously. This is a bug.</div>
+      </div>
+      <div class="col-2 p-0">
+          <div class="list-group" style="max-height: 100vh; overflow-y: auto;">
+            <div class="list-group-item list-group-item-action">
+              <div v-for="event in apiEvents" :key="event.timeStamp" class="list-group-item list-group-item-action">
+                <small>{{ new Date(event.timeStamp).toLocaleTimeString() }}:
+                  <i class="bi-hourglass-top" v-if="event.status == 'rebuild'"></i>
+                  <i class="bi-hourglass-split" v-if="event.status == 'processing'"></i>
+                  <i class="bi-check-circle" v-if="event.status == 'done'"></i>
+                  <i class="bi-bug" v-if="event.status == 'error'"></i>
+                  {{ event.tile }}</small>
+              </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style lang="css" scoped>
